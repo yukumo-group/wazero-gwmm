@@ -14,7 +14,7 @@ type StoredData struct {
 	length   int32
 }
 
-// StoredDatas defines all the datas that will be stored in the memory of wasm
+// StoredDataManager defines all the datas that will be stored in the memory of wasm
 type StoredDataManager struct {
 	lock  sync.RWMutex
 	datas map[string]*StoredData
@@ -78,10 +78,10 @@ func (manager *StoredDataManager) isPosAvailable(
 			return false
 		}
 		// Intersect
-		if dataCheck.startPos >= data.startPos && dataCheckEndPos <= dataEndPos {
+		if dataCheck.startPos <= data.startPos && dataCheckEndPos >= data.startPos {
 			return false
 		}
-		if dataCheck.startPos <= data.startPos && dataCheckEndPos >= dataEndPos {
+		if dataCheck.startPos <= dataEndPos && dataCheckEndPos >= dataEndPos {
 			return false
 		}
 	}
@@ -143,13 +143,13 @@ func (manager *StoredDataManager) AddDataDirectly(
 func (manager *StoredDataManager) AddData(
 	dataName string,
 	data []byte,
-	memoryApi api.Memory,
+	memoryAPI api.Memory,
 ) error {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
 	startPos := manager.getNextPos()
 	length := int32(len(data))
-	ok := memoryApi.Write(
+	ok := memoryAPI.Write(
 		uint32(startPos),
 		data,
 	)

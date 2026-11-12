@@ -9,4 +9,4 @@ gomod:
 release:
   github:
     owner: yukumo-group
-    name: w-gwmm
+    name: wazero-gwmm
