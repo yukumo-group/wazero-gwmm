@@ -1,0 +1,12 @@
+version: 2
+
+builds:
+  - skip: true
+
+gomod:
+  proxy: true
+
+release:
+  github:
+    owner: yukumo-group
+    name: w-gwmm
