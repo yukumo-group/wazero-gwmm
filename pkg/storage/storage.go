@@ -71,21 +71,31 @@ func (manager *StoredDataManager) isPosAvailable(
 	for _, data := range manager.datas {
 		dataEndPos := data.startPos + data.length
 		// Cover
-		if dataCheck.startPos > data.startPos && dataCheckEndPos < dataEndPos {
+		if dataCheck.startPos >= data.startPos && dataCheckEndPos <= dataEndPos {
 			return false
 		}
-		if dataCheck.startPos < data.startPos && dataCheckEndPos > dataEndPos {
+		if dataCheck.startPos <= data.startPos && dataCheckEndPos >= dataEndPos {
 			return false
 		}
 		// Intersect
-		if dataCheck.startPos > data.startPos && dataCheck.startPos < dataEndPos {
+		if dataCheck.startPos >= data.startPos && dataCheckEndPos <= dataEndPos {
 			return false
 		}
-		if dataCheck.startPos < data.startPos && dataCheckEndPos > dataEndPos {
+		if dataCheck.startPos <= data.startPos && dataCheckEndPos >= dataEndPos {
 			return false
 		}
 	}
 	return true
+}
+
+// free frees data stored
+func (manager *StoredDataManager) free(
+	dataName string,
+) {
+	delete(
+		manager.datas,
+		dataName,
+	)
 }
 
 // GetDataDirectly gets the data stored struct
@@ -110,7 +120,7 @@ func (manager *StoredDataManager) AddDataDirectly(
 	defer manager.lock.Unlock()
 	isPosAvailable := manager.isPosAvailable(
 		&StoredData{
-			startPos: startPos,
+			startPos: max(0, startPos),
 			length:   length,
 		},
 	)
@@ -180,4 +190,24 @@ func (manager *StoredDataManager) GetData(
 		)
 	}
 	return result, nil
+}
+
+// Free frees data stored
+func (manager *StoredDataManager) Free(
+	dataName string,
+) {
+	manager.lock.Lock()
+	defer manager.lock.Unlock()
+	manager.free(dataName)
+}
+
+// FreeAll frees all the data
+func (manager *StoredDataManager) FreeAll() {
+	manager.lock.Lock()
+	defer manager.lock.Unlock()
+	for dataName := range manager.datas {
+		manager.free(
+			dataName,
+		)
+	}
 }

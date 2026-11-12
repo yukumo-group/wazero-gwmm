@@ -173,3 +173,36 @@ func TestDataCRUD(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// TestFree tests freeing the data
+func TestFree(t *testing.T) {
+	t.Parallel()
+	testManager := NewStoredDataManager()
+	err := testManager.AddDataDirectly(
+		0,
+		100,
+		"114514",
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = testManager.AddDataDirectly(
+		0,
+		100,
+		"114514",
+	)
+	if err == nil {
+		t.Fatal(
+			"expected to get failed",
+		)
+	}
+	testManager.free("114514")
+	err = testManager.AddDataDirectly(
+		0,
+		100,
+		"114514",
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
