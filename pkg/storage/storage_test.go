@@ -196,7 +196,7 @@ func TestFree(t *testing.T) {
 			"expected to get failed",
 		)
 	}
-	testManager.free("114514")
+	testManager.Free("114514")
 	err = testManager.AddDataDirectly(
 		0,
 		100,
