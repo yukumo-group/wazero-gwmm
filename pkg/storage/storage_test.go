@@ -65,7 +65,7 @@ func TestGetNextPos(t *testing.T) {
 			nextPos1,
 		)
 	}
-	err := newManager.AddDataDirectly(
+	_, err := newManager.AddDataDirectly(
 		nextPos1,
 		65,
 		"114514",
@@ -87,7 +87,7 @@ func TestGetNextPos(t *testing.T) {
 			nextPos2,
 		)
 	}
-	err = newManager.AddDataDirectly(
+	_, err = newManager.AddDataDirectly(
 		nextPos2,
 		114514,
 		"1919810",
@@ -143,7 +143,7 @@ func TestDataCRUD(t *testing.T) {
 	}
 	// Test the manager
 	testManager := NewStoredDataManager()
-	err = testManager.AddData(
+	_, err = testManager.AddData(
 		dataName,
 		testData,
 		memory,
@@ -178,7 +178,7 @@ func TestDataCRUD(t *testing.T) {
 func TestFree(t *testing.T) {
 	t.Parallel()
 	testManager := NewStoredDataManager()
-	err := testManager.AddDataDirectly(
+	_, err := testManager.AddDataDirectly(
 		0,
 		100,
 		"114514",
@@ -186,7 +186,7 @@ func TestFree(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = testManager.AddDataDirectly(
+	_, err = testManager.AddDataDirectly(
 		0,
 		100,
 		"114514",
@@ -197,7 +197,7 @@ func TestFree(t *testing.T) {
 		)
 	}
 	testManager.Free("114514")
-	err = testManager.AddDataDirectly(
+	_, err = testManager.AddDataDirectly(
 		0,
 		100,
 		"114514",

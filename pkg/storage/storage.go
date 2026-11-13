@@ -10,8 +10,8 @@ import (
 
 // StoredData defines the data that will be stored in the memory of wasm
 type StoredData struct {
-	startPos int32
-	length   int32
+	startPos uint32
+	length   uint32
 }
 
 // StoredDataManager defines all the datas that will be stored in the memory of wasm
@@ -29,14 +29,10 @@ func NewStoredDataManager() *StoredDataManager {
 
 // addData adds data directly
 func (manager *StoredDataManager) addData(
-	startPos int32,
-	length int32,
 	dataName string,
+	newStoredData *StoredData,
 ) {
-	manager.datas[dataName] = &StoredData{
-		startPos: max(0, startPos),
-		length:   length,
-	}
+	manager.datas[dataName] = newStoredData
 }
 
 // getData gets data directly
@@ -48,8 +44,8 @@ func (manager *StoredDataManager) getData(
 }
 
 // getHighestPos gets the highest pos occupied
-func (manager *StoredDataManager) getHighestPos() int32 {
-	var highestPos int32 = 0
+func (manager *StoredDataManager) getHighestPos() uint32 {
+	var highestPos uint32 = 0
 	for _, data := range manager.datas {
 		highestPos = max(highestPos, (data.startPos + data.length))
 	}
@@ -57,7 +53,7 @@ func (manager *StoredDataManager) getHighestPos() int32 {
 }
 
 // getNextPos gets the next pos
-func (manager *StoredDataManager) getNextPos() int32 {
+func (manager *StoredDataManager) getNextPos() uint32 {
 	highestPos := manager.getHighestPos()
 	nextPos := ((highestPos + 16 + 3) / 4) * 4
 	return nextPos
@@ -112,31 +108,31 @@ func (manager *StoredDataManager) GetDataDirectly(
 
 // AddDataDirectly directly (passin length and start position) adds new data for storing in wasm
 func (manager *StoredDataManager) AddDataDirectly(
-	startPos int32,
-	length int32,
+	startPos uint32,
+	length uint32,
 	dataName string,
-) error {
+) (*StoredData, error) {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
+	newStoredData := &StoredData{
+		startPos: max(0, startPos),
+		length:   length,
+	}
 	isPosAvailable := manager.isPosAvailable(
-		&StoredData{
-			startPos: max(0, startPos),
-			length:   length,
-		},
+		newStoredData,
 	)
 	if !isPosAvailable {
-		return fmt.Errorf(
+		return nil, fmt.Errorf(
 			"position from %d to %d is already occupied",
 			startPos,
 			startPos+length,
 		)
 	}
 	manager.addData(
-		startPos,
-		length,
 		dataName,
+		newStoredData,
 	)
-	return nil
+	return newStoredData, nil
 }
 
 // AddData adds data with check
@@ -144,26 +140,29 @@ func (manager *StoredDataManager) AddData(
 	dataName string,
 	data []byte,
 	memoryAPI api.Memory,
-) error {
+) (*StoredData, error) {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
 	startPos := manager.getNextPos()
-	length := int32(len(data))
+	length := uint32(len(data))
 	ok := memoryAPI.Write(
-		uint32(startPos),
+		startPos,
 		data,
 	)
 	if !ok {
-		return fmt.Errorf(
+		return nil, fmt.Errorf(
 			"",
 		)
 	}
+	newStoredData := &StoredData{
+		startPos: max(0, startPos),
+		length:   length,
+	}
 	manager.addData(
-		startPos,
-		length,
 		dataName,
+		newStoredData,
 	)
-	return nil
+	return newStoredData, nil
 }
 
 // GetData directly gets data
@@ -181,8 +180,8 @@ func (manager *StoredDataManager) GetData(
 		)
 	}
 	result, ok := memoryApi.Read(
-		uint32(storedData.startPos),
-		uint32(storedData.length),
+		storedData.startPos,
+		storedData.length,
 	)
 	if !ok {
 		return nil, errors.New(
